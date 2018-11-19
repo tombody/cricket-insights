@@ -71,7 +71,6 @@ After a bunch of [trial and error](https://github.com/tombody/cricket-insights/b
 <table border="1">
   <thead>
     <tr style="text-align: right;">
-      <th></th>
       <th>Player</th>
       <th>Dismissal</th>
       <th>Runs</th>
@@ -82,17 +81,10 @@ After a bunch of [trial and error](https://github.com/tombody/cricket-insights/b
       <th>Date</th>
       <th>Location</th>
       <th>Result</th>
-      <th>Innings</th>
-      <th>Team</th>
-      <th>BatSideRR</th>
-      <th>BatSideWicksLost</th>
-      <th>BatSideScore</th>
-      <th>Win</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
       <td>S L Campbell</td>
       <td>st Parore b  Vettori</td>
       <td>51</td>
@@ -103,15 +95,8 @@ After a bunch of [trial and error](https://github.com/tombody/cricket-insights/b
       <td>2nd January, 2000</td>
       <td>Eden Park, Auckland</td>
       <td>New Zealand won by 3 wickets [Duckworth-Lewis]</td>
-      <td>1</td>
-      <td>West Indies</td>
-      <td>5.36</td>
-      <td>7</td>
-      <td>268</td>
-      <td>0</td>
     </tr>
     <tr>
-      <th>1</th>
       <td>R D Jacobs</td>
       <td>lbw b  Harris</td>
       <td>65</td>
@@ -122,12 +107,6 @@ After a bunch of [trial and error](https://github.com/tombody/cricket-insights/b
       <td>2nd January, 2000</td>
       <td>Eden Park, Auckland</td>
       <td>New Zealand won by 3 wickets [Duckworth-Lewis]</td>
-      <td>1</td>
-      <td>West Indies</td>
-      <td>5.36</td>
-      <td>7</td>
-      <td>268</td>
-      <td>0</td>
      </tr>
   </tbody>
 </table>
