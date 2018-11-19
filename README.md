@@ -1,37 +1,135 @@
-## Welcome to GitHub Pages
+## Match level insights for ODI cricket matches
+##### Written: 19-November-2018 by *Thomas Body*
 
-You can use the [editor on GitHub](https://github.com/tombody/cricketscraper/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+In this post I will briefly go over the process of how I used Python to scrape and analyze match level data for one day international (ODI) cricket matches. To accomplish this I used a combination of the BeautifulSoup and the requests library to scrape the data, and then the pandas, sklearn and the fastai library to analyze it. 
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+An outline of the code for the webscraper can be found [here](https://github.com/tombody/cricket-insights/blob/master/scraper.py), and the code for the analysis can be found [here](https://github.com/tombody/cricket-insights/blob/master/Player%20embeddings.ipynb). The code was written entirely in python 3 using both visual code and jupyter notebooks. The original data was obtained from http://www.howstat.com.
 
-### Markdown
+The entire repository can be found on my [tombody](https://github.com/tombody/cricket-insights) github profile page.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+### Scraping the data using BeautifulSoup
 
-```markdown
-Syntax highlighted code block
+First of all, let's look at how the data appears on the [website](http://www.howstat.com).
 
-# Header 1
-## Header 2
-### Header 3
+![image](https://github.com/tombody/cricket-insights/blob/master/images/raw_stats.png?raw=true)
 
-- Bulleted
-- List
+The data is in the form of an ODI scorecard, which are the aggregate statistics of each players batting and bowling contributions to the match. In addition to this, there is also information regarding the date, location, and result of the match. 
 
-1. Numbered
-2. List
+In order to analyze the data, I needed to get it into a more readily accessible form. To do this, all of the data from the raw html was scraped using BeautifulSoup and then put into a CSV file so that it could be easily imported into a Pandas dataframe for analysis.
 
-**Bold** and _Italic_ and `Code` text
+Using the requests library, the raw html was pulled from the url using the following code.
 
-[Link](url) and ![Image](src)
+``` python
+url = 'http://www.howstat.com/cricket/Statistics/Matches/MatchScorecard_ODI.asp?MatchCode='
+page = '1619'
+source = requests.get(f'{url}{page}').text
+soup = BeautifulSoup(source, 'lxml')
 ```
+This returned the raw html, which appeared like this.
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+```html
+<html>
+<head><meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<title>Scorecard - 1999-2000 New Zealand v West Indies - 02/01/2000</title>
+<meta content="One Day Internationals - Scorecard: 1999-2000 New Zealand v West Indies - 1st ODI - 2nd January, 2000 - Eden Park" name="description"/>
+<link href="../../styles/howstat.css" rel="stylesheet"/>
+<script type="text/javascript">
+  ```
+By manually parsing the data, I could find all of the useful information that I was interested in. 
 
-### Jekyll Themes
+```html
+<td class="TextBlackBold8" valign="top" width="160">
+                  Match Date:
+                </td>
+<td class="TextBlack8" valign="top" width="485">
+                  2nd January, 2000
+                </td>
+```
+For instance, located in under the `TextBlack8` html class tag was all of the match information. By using the `find_all` function from beautifulsoup and basic python string manipulation methods, I could pull out all of this information and place it into python lists or dictionaries, which I would later import into a pandas dataframe.
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tombody/cricketscraper/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+```python
+repeatables = np.array([item.text.strip() for item in soup.find_all(class_="TextBlack8")])
+date, location, result, rr_inn_1, rr_inn_2 = repeatables[[0,1,4,6,8]]
 
-### Support or Contact
+repeatables
+>>>     array(['2nd January, 2000', 'Eden Park, Auckland', '50 Overs, Day Match',
+       'West Indies', 'New Zealand won by 3 wickets [Duckworth-Lewis]',
+       'N J Astle', '&nbsp(50.0 overs @ 5.36 rpo)', '(target 250)',
+       '&nbsp(45.1 overs @ 5.54 rpo)',
+       'Rain interrupted play. New Zealand target altered to 250 from 46 overs.'],
+        dtype='<U71')
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+date, location, result, rr_inn_1, rr_inn_2
+>>>   ('2nd January, 2000',
+      'Eden Park, Auckland',
+      'New Zealand won by 3 wickets [Duckworth-Lewis]',
+      5.36,
+      5.54)
+```
+After a bunch of [trial and error](https://github.com/tombody/cricket-insights/blob/master/scraper_outline.ipynb), the raw data was put togehter into a pandas dataframe. The end result looked something like this.
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Player</th>
+      <th>Dismissal</th>
+      <th>Runs</th>
+      <th>BallsFaced</th>
+      <th>Fours</th>
+      <th>Sixes</th>
+      <th>StrikeRate</th>
+      <th>Date</th>
+      <th>Location</th>
+      <th>Result</th>
+      <th>Innings</th>
+      <th>Team</th>
+      <th>BatSideRR</th>
+      <th>BatSideWicksLost</th>
+      <th>BatSideScore</th>
+      <th>Win</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>S L Campbell</td>
+      <td>st Parore b  Vettori</td>
+      <td>51</td>
+      <td>67</td>
+      <td>6</td>
+      <td>0</td>
+      <td>76.12</td>
+      <td>2nd January, 2000</td>
+      <td>Eden Park, Auckland</td>
+      <td>New Zealand won by 3 wickets [Duckworth-Lewis]</td>
+      <td>1</td>
+      <td>West Indies</td>
+      <td>5.36</td>
+      <td>7</td>
+      <td>268</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>R D Jacobs</td>
+      <td>lbw b  Harris</td>
+      <td>65</td>
+      <td>61</td>
+      <td>7</td>
+      <td>2</td>
+      <td>106.56</td>
+      <td>2nd January, 2000</td>
+      <td>Eden Park, Auckland</td>
+      <td>New Zealand won by 3 wickets [Duckworth-Lewis]</td>
+      <td>1</td>
+      <td>West Indies</td>
+      <td>5.36</td>
+      <td>7</td>
+      <td>268</td>
+      <td>0</td>
+     </tr>
+  </tbody>
+</table>
+
+The data was split between the bowlers and the batters. All of the scorecards for all ODIs played between 1971 and 2018 were collected. There was over 70000 rows of data for individual batters innings, and over 40000 rows of bowling statistics. 
